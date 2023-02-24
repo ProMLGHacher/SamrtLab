@@ -22,9 +22,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import com.example.samrtlab.R
 import com.example.samrtlab.feature.app.theme.blue
 import com.example.samrtlab.feature.app.theme.green
+import com.example.samrtlab.feature.onboard.view_model.OnboardViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
@@ -93,15 +96,23 @@ fun Indicator(
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun Onboard() {
+fun Onboard(
+    viewModel: OnboardViewModel = hiltViewModel(),
+    navigateToChangeMail: () -> Unit,
+) {
     val pagerState = rememberPagerState()
     val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar(
             pagerState.currentPage == items.size - 1
         ) {
-            scope.launch {
-                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+            if (pagerState.currentPage == items.size - 1) {
+                viewModel.setOnboardChanged()
+                navigateToChangeMail()
+            } else {
+                scope.launch {
+                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                }
             }
         }
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

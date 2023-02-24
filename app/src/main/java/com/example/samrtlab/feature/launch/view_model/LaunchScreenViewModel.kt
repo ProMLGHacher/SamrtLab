@@ -1,5 +1,6 @@
 package com.example.samrtlab.feature.launch.view_model
 
+import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +11,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LaunchScreenViewModel @Inject constructor() : ViewModel() {
+class LaunchScreenViewModel @Inject constructor(
+    sharedPreferences: SharedPreferences
+) : ViewModel() {
 
     val _state = mutableStateOf<LaunchScreenState>(LaunchScreenState.Loading)
     val state by ::_state
@@ -18,8 +21,11 @@ class LaunchScreenViewModel @Inject constructor() : ViewModel() {
     init {
         viewModelScope.launch {
             delay(500L)
-            _state.value = LaunchScreenState.First
+            if (sharedPreferences.getBoolean("isFirstSession", true)) {
+                _state.value = LaunchScreenState.First
+                return@launch
+            }
+            _state.value = LaunchScreenState.Success
         }
     }
-
 }

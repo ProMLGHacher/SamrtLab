@@ -28,7 +28,7 @@ fun LaunchScreen(
 
             }
             LaunchScreenState.Success -> {
-
+                navController.navigate(Screen.ChangeMail.route)
             }
             LaunchScreenState.First -> {
                 navController.navigate(Screen.Onboard.route)
