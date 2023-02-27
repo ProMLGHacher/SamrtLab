@@ -6,4 +6,5 @@ interface UserRepos {
     fun getUser() : User
     fun setUser(user: User)
     fun setMail(mail: String)
+    fun updateUser(user: User)
 }

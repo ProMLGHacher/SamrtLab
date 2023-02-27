@@ -37,7 +37,7 @@ fun NavigationApp(
             LaunchScreen(navController = navController)
         }
         composable(Screen.MainScreen.route) {
-            MainNav(navController = navController)
+            MainNav(appNavController = navController)
         }
         composable(Screen.Onboard.route) {
             Onboard {

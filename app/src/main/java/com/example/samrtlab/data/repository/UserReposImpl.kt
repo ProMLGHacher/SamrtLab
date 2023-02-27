@@ -19,6 +19,14 @@ class UserReposImpl(
         editor.apply()
     }
 
+    override fun updateUser(user: User) {
+        val editor = sharedPreferences.edit()
+        user.mail?.apply {
+            editor.putString(MAIL_TAG, user.mail)
+        }
+        editor.apply()
+    }
+
     override fun setMail(mail: String) {
         sharedPreferences.edit().putString(MAIL_TAG, mail).apply()
     }

@@ -1,10 +1,12 @@
 package com.example.samrtlab.feature.create_password.view_model
 
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.samrtlab.data.repository.PasswordRepositoryImpl
 import com.example.samrtlab.domain.repository.PasswordRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.ktor.util.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PasswordViewModel @Inject constructor(
-    private val passwordRepository: PasswordRepository
+    private val passwordRepository: PasswordRepository,
+    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
     sealed class State {
@@ -24,7 +27,9 @@ class PasswordViewModel @Inject constructor(
     }
 
     sealed class UiEvent {
-        object Success : UiEvent()
+        data class Success(
+            val isFirstSession: Boolean
+        ) : UiEvent()
         object Rejected : UiEvent()
     }
 
@@ -47,14 +52,14 @@ class PasswordViewModel @Inject constructor(
         viewModelScope.launch {
             if (_state.value is State.HasPassword) {
                 if (password == passwordRepository.getPassword()) {
-                    uiEvent.emit(UiEvent.Success)
+                    uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("isFirstSession", false)))
                 } else {
-                    uiEvent.emit(UiEvent.Success)
+                    uiEvent.emit(UiEvent.Rejected)
                 }
             }
             if (_state.value is State.NotHasPassword) {
                 passwordRepository.setPassword(password = password)
-                uiEvent.emit(UiEvent.Success)
+                uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("isFirstSession", false)))
             }
         }
     }

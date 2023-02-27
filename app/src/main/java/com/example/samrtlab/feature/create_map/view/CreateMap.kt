@@ -25,7 +25,8 @@ import androidx.navigation.NavController
 
 @Composable
 fun CreateMap(
-    navController: NavController
+    navController: NavController,
+    
 ) {
 
     val name = remember {

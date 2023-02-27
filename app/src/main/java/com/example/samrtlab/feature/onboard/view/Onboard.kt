@@ -11,8 +11,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,14 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
 import com.example.samrtlab.R
 import com.example.samrtlab.feature.app.theme.blue
 import com.example.samrtlab.feature.app.theme.green
 import com.example.samrtlab.feature.onboard.view_model.OnboardViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 
@@ -49,7 +45,7 @@ val items = listOf(
         image = R.drawable.onboard_2
     ), OnboardItem(
         title = "Мониторинг",
-        subTitle = "Наши врачи всегда наблюдают \n" + "за вашими показателями здоровья",
+        subTitle = "Наши врачи всегда наблюдают\n" + "за вашими показателями здоровья",
         image = R.drawable.onboard_3
     )
 )

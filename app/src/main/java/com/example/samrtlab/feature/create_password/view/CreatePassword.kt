@@ -39,8 +39,8 @@ fun CreatePassword(
     }
     val state = viewModel.state.collectAsState()
     LaunchedEffect(key1 = password.value) {
-        if (password.value.length == 5) {
-            password.value = password.value.dropLast(1)
+        if (password.value.length >=5) {
+            password.value = password.value.take(4)
         }
         if (password.value.length == 4) {
             viewModel.execute(password = password.value)
@@ -53,18 +53,29 @@ fun CreatePassword(
                 PasswordViewModel.UiEvent.Rejected -> {
                     Toast.makeText(context, "Пароль не верный", Toast.LENGTH_LONG).show()
                 }
-                PasswordViewModel.UiEvent.Success -> {
+                is PasswordViewModel.UiEvent.Success -> {
                     if (state.value is PasswordViewModel.State.NotHasPassword) {
-
+                        if (it.isFirstSession) {
+                            navController.navigate(Screen.CreateMap.route)
+                        } else {
+                            navController.navigate(Screen.MainScreen.route)
+                        }
+                    }
+                    if (state.value is PasswordViewModel.State.HasPassword) {
+                        if (it.isFirstSession) {
+                            navController.navigate(Screen.CreateMap.route)
+                        } else {
+                            navController.navigate(Screen.MainScreen.route)
+                        }
                     }
                 }
             }
         }
     }
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        AppBar(navController)
+        AppBar(navController, state.value)
         Spacer(modifier = Modifier.weight(1f))
-        Text("Создайте пароль", fontWeight = FontWeight.W700, fontSize = 24.sp)
+        Text(if (state.value is PasswordViewModel.State.HasPassword) "Введите пароль" else "Создайте пароль", fontWeight = FontWeight.W700, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             "Для защиты ваших персональных данных",
@@ -319,7 +330,8 @@ private fun Indicator(
 
 @Composable
 private fun AppBar(
-    navController: NavController
+    navController: NavController,
+    state: PasswordViewModel.State
 ) {
     Row(
         Modifier
@@ -327,9 +339,10 @@ private fun AppBar(
             .padding(12.dp), horizontalArrangement = Arrangement.End
     ) {
         TextButton(
-            onClick = { navController.navigate(Screen.CreateMap.route) }
+            onClick = { navController.navigate(Screen.CreateMap.route) },
+            enabled = state is PasswordViewModel.State.HasPassword
         ) {
-            Text("Пропустить", color = Color(0xFF1A6FEE), fontSize = 15.sp)
+            Text("Пропустить", color = if (state is PasswordViewModel.State.HasPassword) Color.Transparent else Color(0xFF1A6FEE), fontSize = 15.sp)
         }
     }
 }
