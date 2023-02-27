@@ -16,10 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +53,7 @@ fun Analyzes(
     Column(modifier = Modifier.fillMaxSize()) {
         AppBar()
         News(news = state.value.news)
+
     }
 }
 
@@ -67,7 +71,7 @@ fun News(
         fontSize = 17.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(horizontal = 20.dp)
     )
     Spacer(modifier = Modifier.height(16.dp))
     val scrollState = rememberPagerState()
@@ -78,14 +82,29 @@ fun News(
         contentPadding = PaddingValues(start = 16.dp, end = 120.dp),
         flingBehavior = PagerDefaults.flingBehavior(
             state = scrollState,
-            endContentPadding = PaddingValues(start = 16.dp, end = 120.dp).calculateEndPadding(LayoutDirection.Rtl),
+            endContentPadding = PaddingValues(start = 16.dp, end = 120.dp).calculateEndPadding(
+                LayoutDirection.Rtl
+            ),
         )
     ) {
+        val color = remember {
+            mutableStateOf(Random.nextLong())
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
-                .background(Color(Random.nextLong()).copy(1f), RoundedCornerShape(10.dp))
+                .height(180.dp)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(color.value).copy(1f),
+                            Color(color.value).copy(0.5f)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    ),
+                    RoundedCornerShape(10.dp)
+                )
                 .clip(RoundedCornerShape(10.dp)),
         ) {
             GlideImage(
@@ -97,8 +116,30 @@ fun News(
                     ),
                 contentScale = ContentScale.FillHeight
             )
-            Column() {
-
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    news[it].name,
+                    fontWeight = FontWeight.W900,
+                    fontSize = 20.sp,
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(news[it].description, color = Color.White, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        news[it].price + " ₽",
+                        color = Color.White,
+                        fontWeight = FontWeight.W900,
+                        fontSize = 20.sp
+                    )
+                }
             }
         }
     }
