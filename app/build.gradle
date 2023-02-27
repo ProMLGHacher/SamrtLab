@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -70,5 +71,14 @@ dependencies {
     implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
 
     implementation "com.google.accompanist:accompanist-pager:0.29.1-alpha"
+
+    implementation "io.ktor:ktor-client-core:2.2.3"
+    implementation "io.ktor:ktor-client-android:2.2.3"
+    implementation "io.ktor:ktor-client-content-negotiation:2.2.3"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:2.2.3"
+
+    implementation "io.ktor:ktor-client-logging:2.2.3"
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
 
 }

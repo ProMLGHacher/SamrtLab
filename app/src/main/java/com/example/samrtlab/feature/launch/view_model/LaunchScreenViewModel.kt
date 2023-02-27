@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.samrtlab.domain.repository.TokenRepository
 import com.example.samrtlab.feature.launch.model.LaunchScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LaunchScreenViewModel @Inject constructor(
-    sharedPreferences: SharedPreferences
+    sharedPreferences: SharedPreferences,
+    tokenRepository: TokenRepository
 ) : ViewModel() {
 
     val _state = mutableStateOf<LaunchScreenState>(LaunchScreenState.Loading)
@@ -23,6 +25,10 @@ class LaunchScreenViewModel @Inject constructor(
             delay(500L)
             if (sharedPreferences.getBoolean("isFirstSession", true)) {
                 _state.value = LaunchScreenState.First
+                return@launch
+            }
+            if (tokenRepository.getToken().token == null) {
+                _state.value = LaunchScreenState.Rejected
                 return@launch
             }
             _state.value = LaunchScreenState.Success

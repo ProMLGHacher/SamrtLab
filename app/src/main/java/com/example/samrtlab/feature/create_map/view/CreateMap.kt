@@ -3,8 +3,11 @@ package com.example.samrtlab.feature.create_map.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -42,7 +45,9 @@ fun CreateMap(
     }
 
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .scrollable(orientation = Orientation.Vertical, state = rememberScrollState())) {
         Spacer(modifier = Modifier.height(38.dp))
         AppBar()
         Spacer(modifier = Modifier.height(16.dp))

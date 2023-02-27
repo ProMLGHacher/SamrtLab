@@ -9,4 +9,5 @@ sealed class Screen(
     object ConfirmEmail : Screen(route = "confirm_email_screen")
     object CreatePassword : Screen(route = "create_password_screen")
     object CreateMap : Screen(route = "create_map_screen")
+    object MainScreen : Screen(route = "main_screen")
 }

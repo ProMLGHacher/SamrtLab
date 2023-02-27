@@ -25,10 +25,10 @@ fun LaunchScreen(
 
             }
             LaunchScreenState.Rejected -> {
-
+                navController.navigate(Screen.ChangeMail.route)
             }
             LaunchScreenState.Success -> {
-                navController.navigate(Screen.ChangeMail.route)
+                navController.navigate(Screen.CreatePassword.route)
             }
             LaunchScreenState.First -> {
                 navController.navigate(Screen.Onboard.route)

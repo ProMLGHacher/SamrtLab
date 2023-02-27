@@ -1,5 +1,6 @@
 package com.example.samrtlab.feature.create_password.view
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,36 +11,54 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.samrtlab.R
+import com.example.samrtlab.feature.create_password.view_model.PasswordViewModel
 import com.example.samrtlab.feature.navigation.model.Screen
+import kotlinx.coroutines.flow.collect
 
 @Composable
 fun CreatePassword(
-    navController: NavController
+    navController: NavController,
+    viewModel: PasswordViewModel = hiltViewModel()
 ) {
     val password = remember {
         mutableStateOf("")
     }
+    val state = viewModel.state.collectAsState()
     LaunchedEffect(key1 = password.value) {
         if (password.value.length == 5) {
             password.value = password.value.dropLast(1)
         }
         if (password.value.length == 4) {
-            navController.navigate(Screen.CreateMap.route)
+            viewModel.execute(password = password.value)
+        }
+    }
+    val context = LocalContext.current
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect {
+            when(it) {
+                PasswordViewModel.UiEvent.Rejected -> {
+                    Toast.makeText(context, "Пароль не верный", Toast.LENGTH_LONG).show()
+                }
+                PasswordViewModel.UiEvent.Success -> {
+                    if (state.value is PasswordViewModel.State.NotHasPassword) {
+
+                    }
+                }
+            }
         }
     }
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {

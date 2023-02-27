@@ -1,6 +1,7 @@
 package com.example.samrtlab.feature.comfirm_email.view
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -33,14 +35,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.samrtlab.R
+import com.example.samrtlab.feature.comfirm_email.view_model.ConfirmEmailViewModel
 import com.example.samrtlab.feature.navigation.model.Screen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 
 @Composable
 fun ConfirmEmail(
-    navController: NavController
+    navController: NavController,
+    viewModel: ConfirmEmailViewModel = hiltViewModel()
 ) {
     val text1 = remember {
         mutableStateOf("")
@@ -59,8 +65,21 @@ fun ConfirmEmail(
     }
     LaunchedEffect(key1 = text1.value + text2.value + text3.value + text4.value) {
         val text = text1.value + text2.value + text3.value + text4.value
-        if (text == "1234") {
-            navController.navigate(Screen.CreatePassword.route)
+        if (text.length == 4) {
+            viewModel.submit(text)
+        }
+    }
+    val context = LocalContext.current
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect {
+            when(it) {
+                is ConfirmEmailViewModel.UiEvent.Error -> {
+                    Toast.makeText(context, it.error, Toast.LENGTH_SHORT).show()
+                }
+                is ConfirmEmailViewModel.UiEvent.Success -> {
+                    navController.navigate(Screen.CreatePassword.route)
+                }
+            }
         }
     }
     LaunchedEffect(key1 = true) {

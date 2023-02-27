@@ -1,15 +1,18 @@
 package com.example.samrtlab.feature.change_mail.view
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.samrtlab.R
 import com.example.samrtlab.feature.change_mail.view_model.ChangeMailViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ChangeMail(
@@ -25,6 +30,19 @@ fun ChangeMail(
     navigateToConfirmEmail: () -> Unit
 ) {
     val state = viewModel.state.collectAsState()
+    val context = LocalContext.current
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect {
+            when(it) {
+                is ChangeMailViewModel.UiEvent.Error -> {
+                    Toast.makeText(context.applicationContext, it.message, Toast.LENGTH_SHORT).show()
+                }
+                ChangeMailViewModel.UiEvent.Success -> {
+                    navigateToConfirmEmail()
+                }
+            }
+        }
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.height(70.dp))
         Row(
@@ -78,7 +96,7 @@ fun ChangeMail(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = {
-                navigateToConfirmEmail()
+                viewModel.submit()
             },
             enabled = state.value.isCorrect,
             shape = RoundedCornerShape(10.dp),
@@ -105,7 +123,8 @@ fun ChangeMail(
             fontSize = 15.sp
         )
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+            },
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = Color.Transparent,
