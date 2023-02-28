@@ -17,9 +17,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.samrtlab.feature.main.analyzes.view.Analyzes
 import com.example.samrtlab.feature.main.naviagtion.model.MainNavScreen
+import com.google.accompanist.pager.ExperimentalPagerApi
+import dev.chrisbanes.snapper.ExperimentalSnapperApi
 
+@ExperimentalGlideComposeApi
+@ExperimentalPagerApi
+@ExperimentalSnapperApi
 @Composable
 fun MainNav(
     appNavController: NavController

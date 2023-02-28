@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.samrtlab.domain.repository.NewsRepository
 import com.example.samrtlab.feature.main.analyzes.model.AnalyzesState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,7 +15,7 @@ import javax.inject.Inject
 import kotlin.reflect.typeOf
 
 @HiltViewModel
-class AnalyzesViewModel @Inject constructor(
+class NewsViewModel @Inject constructor(
     private val newsRepository: NewsRepository
 ) : ViewModel() {
 
