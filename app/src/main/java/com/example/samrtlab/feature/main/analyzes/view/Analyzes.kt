@@ -1,14 +1,13 @@
 package com.example.samrtlab.feature.main.analyzes.view
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -16,22 +15,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.samrtlab.R
+import com.example.samrtlab.domain.model.catalog.CatalogItem
 import com.example.samrtlab.domain.model.news.NewsItem
+import com.example.samrtlab.feature.main.analyzes.view_model.CatalogViewModel
 import com.example.samrtlab.feature.main.analyzes.view_model.NewsViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -40,6 +46,7 @@ import com.google.accompanist.pager.rememberPagerState
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import kotlin.random.Random
 
+@ExperimentalMaterialApi
 @ExperimentalSnapperApi
 @ExperimentalPagerApi
 @ExperimentalGlideComposeApi
@@ -47,44 +54,277 @@ import kotlin.random.Random
 fun Analyzes(
     mainNavController: NavController,
     appNavController: NavController,
-    viewModel: NewsViewModel = hiltViewModel()
+    viewModel: NewsViewModel = hiltViewModel(),
+    catalogViewModel: CatalogViewModel = hiltViewModel()
 ) {
+    val catalogState = catalogViewModel.state.collectAsState()
     val state = viewModel.state.collectAsState()
-    Column(modifier = Modifier.fillMaxSize()) {
-        AppBar()
-        if (state.value.isLoading) NewsSkeleton() else News(news = state.value.news)
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            "Каталог анализов",
-            color = Color(0xFF939396),
-            fontWeight = FontWeight.W900,
-            fontSize = 17.sp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
 
+    val refreshState = rememberPullRefreshState(
+        refreshing = catalogState.value.catalogIsLoading || catalogState.value.categoriesIsLoading || state.value.isLoading,
+        onRefresh = {
+            viewModel.update()
+            catalogViewModel.updateCategories()
+        })
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        PullRefreshIndicator(catalogState.value.catalogIsLoading || catalogState.value.categoriesIsLoading || state.value.isLoading, refreshState,
+            Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(10000f))
+        LazyColumn(modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(refreshState)) {
+            item {
+                AppBar()
+                if (state.value.isLoading) NewsSkeleton() else News(news = state.value.news)
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "Каталог анализов",
+                    color = Color(0xFF939396),
+                    fontWeight = FontWeight.W900,
+                    fontSize = 17.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Categories(
+                    isLoading = catalogState.value.categoriesIsLoading,
+                    categories = catalogState.value.categories,
+                    selected = catalogState.value.selectedCategory,
+                    selectCategory = {
+                        catalogViewModel.setCategory(it)
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            if (catalogState.value.catalogIsLoading)
+                items(10) {
+                    SkeletonCatalogItem()
+                }
+            else
+                items(catalogState.value.catalog) {
+                    CatalogItem(
+                        item = it
+                    )
+                }
+        }
     }
 }
 
 @Composable
-fun Filters() {
-
+fun SkeletonCatalogItem() {
+    Box(
+        modifier = Modifier
+            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp, top = 12.dp)
+            .shadow(
+                20.dp,
+                spotColor = Color(0xFFE4E8F5).copy(0.6f),
+                shape = RoundedCornerShape(10.dp)
+            )
+            .fillMaxWidth()
+            .background(Color.White, shape = RoundedCornerShape(10.dp))
+            .border(
+                width = 1.dp,
+                brush = SolidColor(Color(0xFFF4F4F4)),
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .height(20.dp)
+                    .background(
+                        Color.Black.copy(0.1f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .height(20.dp)
+                    .background(
+                        Color.Black.copy(0.1f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(50.dp)
+                            .background(
+                                Color(0xFF939396).copy(0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Box(
+                        modifier = Modifier
+                            .height(22.dp)
+                            .width(50.dp)
+                            .background(
+                                Color.Black.copy(0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(100.dp)
+                        .background(
+                            Color(0xFF1A6FEE),
+                            RoundedCornerShape(10.dp)
+                        )
+                )
+            }
+        }
+    }
 }
 
+@Composable
+fun CatalogItem(
+    item: CatalogItem,
+) {
+        Box(
+            modifier = Modifier
+                .padding(start = 20.dp, end = 20.dp, bottom = 12.dp, top = 12.dp)
+                .shadow(
+                    20.dp,
+                    spotColor = Color(0xFFE4E8F5).copy(0.6f),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(10.dp))
+                .border(
+                    width = 1.dp,
+                    brush = SolidColor(Color(0xFFF4F4F4)),
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    item.name,
+                    maxLines = 2,
+                    softWrap = true,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    color = Color.Black,
+                    fontWeight = FontWeight.W500,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            item.time_result,
+                            color = Color(0xFF939396),
+                            fontWeight = FontWeight.W900
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            item.price + " ₽",
+                            color = Color.Black,
+                            fontWeight = FontWeight.W900,
+                            fontSize = 17.sp
+                        )
+                    }
+                    Button(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier.height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = Color(0xFF1A6FEE)
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Добавить", color = Color.White, fontWeight = FontWeight.W900)
+                    }
+                }
+            }
+        }
+}
 
-
-
-
-
-
-
-
-
-
-
-
+@Composable
+fun Categories(
+    isLoading: Boolean,
+    categories: List<String>,
+    selected: String?,
+    selectCategory: (String) -> Unit
+) {
+    if (isLoading)
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp)
+        ) {
+            items(10) {
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xFFF5F5F9), shape = RoundedCornerShape(10.dp))
+                        .clip(
+                            RoundedCornerShape(10.dp)
+                        )
+                        .padding(vertical = 14.dp, horizontal = 20.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(22.dp)
+                            .width(100.dp)
+                            .background(
+                                Color(0xFF7E7E9A).copy(0.2f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    ) {
+                    }
+                }
+            }
+        }
+    else
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp)
+        ) {
+            items(categories.size) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            if (selected == categories[it]) Color(0xFF1A6FEE) else Color(
+                                0xFFF5F5F9
+                            ), shape = RoundedCornerShape(10.dp)
+                        )
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable {
+                            selectCategory(categories[it])
+                        }
+                        .padding(vertical = 14.dp, horizontal = 20.dp)
+                ) {
+                    Text(
+                        categories[it],
+                        color = if (selected == categories[it]) Color.White else Color(0xFF7E7E9A),
+                        fontWeight = FontWeight.W500
+                    )
+                }
+            }
+        }
+}
 
 
 @ExperimentalSnapperApi
@@ -103,75 +343,68 @@ fun NewsSkeleton() {
     )
     Spacer(modifier = Modifier.height(16.dp))
     val scrollState = rememberPagerState()
-    HorizontalPager(
-        count = 10,
-        itemSpacing = 16.dp,
-        state = scrollState,
-        contentPadding = PaddingValues(start = 16.dp, end = 120.dp),
-        flingBehavior = PagerDefaults.flingBehavior(
-            state = scrollState,
-            endContentPadding = PaddingValues(start = 16.dp, end = 120.dp).calculateEndPadding(
-                LayoutDirection.Rtl
-            ),
-        )
+    val size = LocalConfiguration.current.screenWidthDp
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp),
     ) {
-        val color = remember {
-            mutableStateOf(Random.nextLong())
-        }
-
         @Composable
         fun text() {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White,
-                            Color.White.copy(0.5f)
-                        ),
-                        start = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                        end = Offset(0f, 0f)
-                    ),
-                    RoundedCornerShape(10.dp)
-                ))
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.Gray,
-                            Color.Gray.copy(0.5f)
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                    ),
-                    RoundedCornerShape(10.dp)
-                )
-                .clip(RoundedCornerShape(10.dp)),
-        ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .width((size * 0.7f).dp)
+                    .height(20.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(0.2f),
+                                Color.White.copy(0.1f)
+                            ),
+                            start = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
+                            end = Offset(0f, 0f)
+                        ),
+                        RoundedCornerShape(10.dp)
+                    )
+            )
+        }
+        items(10) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.Gray,
+                                Color.Gray.copy(0.5f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                        ),
+                        RoundedCornerShape(10.dp)
+                    )
+                    .clip(RoundedCornerShape(10.dp)),
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    text()
-                    Spacer(modifier = Modifier.height(4.dp))
-                    text()
-                }
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    text()
-                    Spacer(modifier = Modifier.height(4.dp))
-                    text()
-                    Spacer(modifier = Modifier.height(4.dp))
-                    text()
-                    Spacer(modifier = Modifier.height(4.dp))
-                    text()
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        text()
+                        Spacer(modifier = Modifier.height(4.dp))
+                        text()
+                    }
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        text()
+                        Spacer(modifier = Modifier.height(4.dp))
+                        text()
+                        Spacer(modifier = Modifier.height(4.dp))
+                        text()
+                        Spacer(modifier = Modifier.height(4.dp))
+                        text()
+                    }
                 }
             }
         }
@@ -196,71 +429,72 @@ fun News(
             .padding(horizontal = 20.dp)
     )
     Spacer(modifier = Modifier.height(16.dp))
-    val scrollState = rememberPagerState()
-    HorizontalPager(
-        count = news.size,
-        itemSpacing = 16.dp,
-        state = scrollState,
-        contentPadding = PaddingValues(start = 16.dp, end = 120.dp),
-        flingBehavior = PagerDefaults.flingBehavior(
-            state = scrollState,
-            endContentPadding = PaddingValues(start = 16.dp, end = 120.dp).calculateEndPadding(
-                LayoutDirection.Rtl
-            ),
-        )
+
+    val size = LocalConfiguration.current.screenWidthDp
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        val color = remember {
-            mutableStateOf(Random.nextLong())
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(color.value).copy(1f),
-                            Color(color.value).copy(0.5f)
+        items(news.size) {
+            val color = remember {
+                mutableStateOf(Random.nextLong())
+            }
+            Box(
+                modifier = Modifier
+                    .width((size * 0.7f).dp)
+                    .height(160.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color(color.value).copy(1f),
+                                Color(color.value).copy(0.5f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                         ),
-                        start = Offset(0f, 0f),
-                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                    ),
-                    RoundedCornerShape(10.dp)
-                )
-                .clip(RoundedCornerShape(10.dp)),
-        ) {
-            GlideImage(
-                model = news[it].image,
-                contentDescription = null,
-                modifier = Modifier
-                    .align(
-                        Alignment.CenterEnd
-                    ),
-                contentScale = ContentScale.FillHeight
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    news[it].name,
-                    fontWeight = FontWeight.W900,
-                    fontSize = 20.sp,
-                    modifier = Modifier.fillMaxWidth(0.8f),
-                    color = Color.White,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(news[it].description, color = Color.White, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        news[it].price + " ₽",
-                        color = Color.White,
-                        fontWeight = FontWeight.W900,
-                        fontSize = 20.sp
+                        RoundedCornerShape(10.dp)
                     )
+                    .clip(RoundedCornerShape(10.dp)),
+            ) {
+                GlideImage(
+                    model = news[it].image,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(
+                            Alignment.CenterEnd
+                        ),
+                    contentScale = ContentScale.FillHeight
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        news[it].name,
+                        fontWeight = FontWeight.W900,
+                        fontSize = 20.sp,
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                        color = Color.White,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            news[it].description,
+                            color = Color.White,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            news[it].price + " ₽",
+                            color = Color.White,
+                            fontWeight = FontWeight.W900,
+                            fontSize = 20.sp
+                        )
+                    }
                 }
             }
         }

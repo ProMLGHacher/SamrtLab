@@ -17,6 +17,10 @@ class CatalogRepositoryImpl(
     }
 
     override suspend fun getCategories(): List<String> {
-        TODO("Not yet implemented")
+        val list = mutableSetOf<String>()
+        httpClient.get("/api/catalog").body<List<CatalogItem>>().map {
+            list.add(it.category)
+        }
+        return list.toList()
     }
 }

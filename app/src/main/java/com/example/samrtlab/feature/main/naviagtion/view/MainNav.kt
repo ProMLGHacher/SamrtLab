@@ -1,15 +1,20 @@
 package com.example.samrtlab.feature.main.naviagtion.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -18,11 +23,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.example.samrtlab.R
 import com.example.samrtlab.feature.main.analyzes.view.Analyzes
 import com.example.samrtlab.feature.main.naviagtion.model.MainNavScreen
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalGlideComposeApi
 @ExperimentalPagerApi
 @ExperimentalSnapperApi
@@ -49,12 +56,15 @@ fun MainNav(
                         selectedContentColor = Color(0xFF1A6FEE),
                         unselectedContentColor = Color(0xFFB8C1CC),
                         icon = {
-                            Icon(
-                                painter = painterResource(id = screen.icon),
-                                contentDescription = null
-                            )
+                            Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.padding(8.dp)) {
+                                Icon(
+                                    painter = painterResource(id = screen.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(screen.name, maxLines = 1, fontSize = 10.sp)
+                            }
                         },
-                        label = { Text(screen.name) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.name } == true,
                         onClick = {
                             navController.navigate(screen.name) {
@@ -74,7 +84,7 @@ fun MainNav(
                     )
                 }
             }
-        }
+        },
     ) { innerPadding ->
         NavHost(
             navController,
@@ -85,10 +95,14 @@ fun MainNav(
                 Analyzes(mainNavController = navController, appNavController = appNavController)
             }
             composable(MainNavScreen.Results.name) {
-
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = null, modifier = Modifier.fillMaxSize(0.5f))
+                }
             }
             composable(MainNavScreen.Support.name) {
-
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = null, modifier = Modifier.fillMaxSize(0.5f))
+                }
             }
             composable(MainNavScreen.Profile.name) {
 
