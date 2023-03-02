@@ -36,7 +36,7 @@ class CatalogViewModel @Inject constructor(
         updateCatalog()
     }
 
-    fun updateCatalog() {
+    private fun updateCatalog() {
         viewModelScope.launch {
             _state.update {
                 it.copy(

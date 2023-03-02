@@ -73,7 +73,7 @@ fun CreatePassword(
         }
     }
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        AppBar(navController, state.value)
+        if (state.value is PasswordViewModel.State.NotHasPassword) AppBar(navController, state.value)
         Spacer(modifier = Modifier.weight(1f))
         Text(if (state.value is PasswordViewModel.State.HasPassword) "Введите пароль" else "Создайте пароль", fontWeight = FontWeight.W700, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(16.dp))

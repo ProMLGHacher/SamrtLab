@@ -83,4 +83,6 @@ dependencies {
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
 
+    implementation "com.google.accompanist:accompanist-navigation-material:0.29.1-alpha"
+
 }

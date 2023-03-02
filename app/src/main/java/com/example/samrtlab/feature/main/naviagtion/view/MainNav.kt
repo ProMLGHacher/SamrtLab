@@ -26,6 +26,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.example.samrtlab.R
 import com.example.samrtlab.feature.main.analyzes.view.Analyzes
 import com.example.samrtlab.feature.main.naviagtion.model.MainNavScreen
+import com.example.samrtlab.feature.main.profile.view.Profile
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 
@@ -35,7 +36,9 @@ import dev.chrisbanes.snapper.ExperimentalSnapperApi
 @ExperimentalSnapperApi
 @Composable
 fun MainNav(
-    appNavController: NavController
+    appNavController: NavController,
+    setSheetState: (state: ModalBottomSheetValue) -> Unit,
+    setSheetContent: (@Composable (() -> Unit)) -> Unit
 ) {
     val items = listOf(
         MainNavScreen.Analyzes,
@@ -92,7 +95,7 @@ fun MainNav(
             Modifier.padding(innerPadding)
         ) {
             composable(MainNavScreen.Analyzes.name) {
-                Analyzes(mainNavController = navController, appNavController = appNavController)
+                Analyzes(mainNavController = navController, appNavController = appNavController, setSheetState = setSheetState, setSheetContent = setSheetContent)
             }
             composable(MainNavScreen.Results.name) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -105,7 +108,9 @@ fun MainNav(
                 }
             }
             composable(MainNavScreen.Profile.name) {
-
+                Profile(
+                    appNavController = appNavController
+                )
             }
         }
     }
