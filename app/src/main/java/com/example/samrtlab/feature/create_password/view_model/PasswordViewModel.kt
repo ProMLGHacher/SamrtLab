@@ -52,14 +52,14 @@ class PasswordViewModel @Inject constructor(
         viewModelScope.launch {
             if (_state.value is State.HasPassword) {
                 if (password == passwordRepository.getPassword()) {
-                    uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("isFirstSession", false)))
+                    uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("fs", true)))
                 } else {
                     uiEvent.emit(UiEvent.Rejected)
                 }
             }
             if (_state.value is State.NotHasPassword) {
                 passwordRepository.setPassword(password = password)
-                uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("isFirstSession", false)))
+                uiEvent.emit(UiEvent.Success(sharedPreferences.getBoolean("fs", true)))
             }
         }
     }

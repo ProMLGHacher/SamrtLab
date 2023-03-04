@@ -24,8 +24,11 @@ class LaunchScreenViewModel @Inject constructor(
         viewModelScope.launch {
             delay(500L)
             if (sharedPreferences.getBoolean("isFirstSession", true)) {
+                sharedPreferences.edit().putBoolean("fs", true).apply()
                 _state.value = LaunchScreenState.First
                 return@launch
+            }  else {
+                sharedPreferences.edit().putBoolean("fs", false).apply()
             }
             if (tokenRepository.getToken().token == null) {
                 _state.value = LaunchScreenState.Rejected

@@ -26,6 +26,17 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideProfileRepository(
+        sharedPreferences: SharedPreferences,
+        httpClient: HttpClient
+    ): ProfileRepository {
+        return ProfileRepositoryImpl(
+            sharedPreferences = sharedPreferences
+        )
+    }
+
+    @Provides
+    @Singleton
     fun provideCatalogRepository(
         httpClient: HttpClient
     ): CatalogRepository {

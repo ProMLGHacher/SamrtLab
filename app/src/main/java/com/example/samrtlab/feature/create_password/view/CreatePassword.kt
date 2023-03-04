@@ -51,21 +51,38 @@ fun CreatePassword(
         viewModel.uiEvent.collect {
             when(it) {
                 PasswordViewModel.UiEvent.Rejected -> {
-                    Toast.makeText(context, "Пароль не верный", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Пароль не верный", Toast.LENGTH_SHORT).show()
+                    password.value = ""
                 }
                 is PasswordViewModel.UiEvent.Success -> {
                     if (state.value is PasswordViewModel.State.NotHasPassword) {
                         if (it.isFirstSession) {
-                            navController.navigate(Screen.CreateMap.route)
+                            navController.navigate(Screen.CreateMap.route){
+                                popUpTo(Screen.CreatePassword.route) {
+                                    inclusive = true
+                                }
+                            }
                         } else {
-                            navController.navigate(Screen.MainScreen.route)
+                            navController.navigate(Screen.MainScreen.route) {
+                                popUpTo(Screen.CreatePassword.route) {
+                                    inclusive = true
+                                }
+                            }
                         }
                     }
                     if (state.value is PasswordViewModel.State.HasPassword) {
                         if (it.isFirstSession) {
-                            navController.navigate(Screen.CreateMap.route)
+                            navController.navigate(Screen.CreateMap.route){
+                                popUpTo(Screen.CreatePassword.route) {
+                                    inclusive = true
+                                }
+                            }
                         } else {
-                            navController.navigate(Screen.MainScreen.route)
+                            navController.navigate(Screen.MainScreen.route){
+                                popUpTo(Screen.CreatePassword.route) {
+                                    inclusive = true
+                                }
+                            }
                         }
                     }
                 }
@@ -339,8 +356,7 @@ private fun AppBar(
             .padding(12.dp), horizontalArrangement = Arrangement.End
     ) {
         TextButton(
-            onClick = { navController.navigate(Screen.CreateMap.route) },
-            enabled = state is PasswordViewModel.State.HasPassword
+            onClick = { navController.navigate(Screen.CreateMap.route) }
         ) {
             Text("Пропустить", color = if (state is PasswordViewModel.State.HasPassword) Color.Transparent else Color(0xFF1A6FEE), fontSize = 15.sp)
         }

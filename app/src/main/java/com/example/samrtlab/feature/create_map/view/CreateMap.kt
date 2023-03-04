@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
+import com.example.samrtlab.consts.elevation
 
 @Composable
 fun CreateMap(
@@ -208,6 +209,7 @@ fun CreateMap(
             onClick = {
 
             },
+            elevation = elevation(),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = Color(0xFF1A6FEE),
@@ -217,7 +219,7 @@ fun CreateMap(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(58.dp)
+                .height(50.dp)
                 .padding(horizontal = 20.dp)
         ) {
             Text("Создать", fontWeight = FontWeight.W600, fontSize = 17.sp, color = Color.White)

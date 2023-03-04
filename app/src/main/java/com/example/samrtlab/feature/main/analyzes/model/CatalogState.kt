@@ -7,5 +7,6 @@ data class CatalogState(
     val categories: List<String> = emptyList(),
     val catalogIsLoading: Boolean = true,
     val categoriesIsLoading: Boolean = true,
-    val selectedCategory: String? = null
+    val selectedCategory: String? = null,
+    val searchText: String = "",
 )

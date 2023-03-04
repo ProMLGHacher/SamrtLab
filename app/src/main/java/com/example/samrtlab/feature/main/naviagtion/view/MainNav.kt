@@ -1,5 +1,6 @@
 package com.example.samrtlab.feature.main.naviagtion.view
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import com.example.samrtlab.feature.main.profile.view.Profile
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 
+@ExperimentalAnimationApi
 @OptIn(ExperimentalMaterialApi::class)
 @ExperimentalGlideComposeApi
 @ExperimentalPagerApi

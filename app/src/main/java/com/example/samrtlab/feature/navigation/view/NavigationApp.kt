@@ -3,6 +3,7 @@ package com.example.samrtlab.feature.navigation.view
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -30,6 +31,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import kotlinx.coroutines.launch
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalSnapperApi
 @ExperimentalPagerApi
