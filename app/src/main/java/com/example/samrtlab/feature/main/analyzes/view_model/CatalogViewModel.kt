@@ -37,6 +37,22 @@ class CatalogViewModel @Inject constructor(
         }
     }
 
+    fun setFirstVisibleIndex(index: Int) {
+        try {
+            if (allList.value[index].category != _state.value.selectedCategory) {
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            selectedCategory = allList.value[index].category
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            return
+        }
+    }
+
     fun setCategory(category: String) {
         viewModelScope.launch {
             _state.update {
@@ -45,7 +61,7 @@ class CatalogViewModel @Inject constructor(
                 )
             }
         }
-        updateCatalog()
+        //updateCatalog()
     }
 
     private fun updateCatalog() {
@@ -56,8 +72,12 @@ class CatalogViewModel @Inject constructor(
                 )
             }
             val catalog = catalogRepository.getCatalog()
+            val ret = mutableListOf<CatalogItem>()
+            _state.value.categories.forEach { category ->
+                ret.addAll(catalog.filter { it.category == category })
+            }
             allList.update {
-                catalog
+                ret
             }
             _state.update {caSt ->
                 caSt.copy(

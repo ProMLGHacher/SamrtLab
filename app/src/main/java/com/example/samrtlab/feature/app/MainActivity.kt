@@ -3,6 +3,7 @@ package com.example.samrtlab.feature.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
@@ -15,6 +16,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @ExperimentalGlideComposeApi
 @ExperimentalPagerApi

@@ -1,8 +1,7 @@
 package com.example.samrtlab.feature.main.analyzes.view
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -17,7 +16,6 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -33,7 +31,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -96,7 +93,8 @@ fun Analyzes(
                     setSheetState = setSheetState,
                     setSheetContent = setSheetContent,
                     catalogViewModel = catalogViewModel,
-                    refreshState = refreshState
+                    refreshState = refreshState,
+                    allCatalog
                 )
             else Search(
                 allCatalog.value, catalogState.value.searchText, setSheetState, setSheetContent
@@ -171,10 +169,43 @@ fun Main(
     catalogState: CatalogState,
     state: NewsState,
     setSheetState: (state: ModalBottomSheetValue) -> Unit,
-    setSheetContent: (@Composable (() -> Unit)) -> Unit,
+    setSheetContent: (@Composable () -> Unit) -> Unit,
     catalogViewModel: CatalogViewModel,
-    refreshState: PullRefreshState
+    refreshState: PullRefreshState,
+    allCatalog: State<List<CatalogItem>>
 ) {
+    val scrollState = rememberLazyListState()
+    var lastScrollIndex = remember {
+        mutableStateOf(0)
+    }
+    val scrollUp = remember {
+        mutableStateOf(false)
+    }
+
+    fun updateScrollPosition(newScrollIndex: Int) {
+        if (newScrollIndex == lastScrollIndex.value) return
+        scrollUp.value = newScrollIndex > lastScrollIndex.value
+        lastScrollIndex.value = newScrollIndex
+    }
+    LaunchedEffect(scrollState.canScrollBackward) {
+        scrollUp.value = scrollState.canScrollBackward
+    }
+    LaunchedEffect(key1 = catalogState.selectedCategory) {
+        if (allCatalog.value.isNotEmpty()) {
+            scrollState.scrollToItem(
+                allCatalog.value.indexOf(
+                    allCatalog.value.find { it.category == catalogState.selectedCategory }
+                )
+            )
+        }
+    }
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.firstVisibleItemIndex }
+            .collect {
+                catalogViewModel.setFirstVisibleIndex(it)
+            }
+    }
+    val position by animateFloatAsState(if (scrollUp.value) -1050f else 0f)
     Box(modifier = Modifier.fillMaxSize()) {
         PullRefreshIndicator(
             catalogState.catalogIsLoading || catalogState.categoriesIsLoading || state.isLoading,
@@ -183,39 +214,65 @@ fun Main(
                 .align(TopCenter)
                 .zIndex(10000f)
         )
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .pullRefresh(refreshState),
+                .pullRefresh(refreshState)
+                .verticalScroll(rememberScrollState())
         ) {
-            item {
-                if (state.isLoading) NewsSkeleton() else News(news = state.news)
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    "Каталог анализов",
-                    color = Color(0xFF939396),
-                    fontWeight = FontWeight.W900,
-                    fontSize = 17.sp,
+            AnimatedVisibility(
+                visible = !scrollUp.value,
+                enter = slideInVertically(
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                ) + expandVertically(
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                ),
+                exit = slideOutVertically(
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                ) + shrinkVertically(
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                )
+            ) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Categories(isLoading = catalogState.categoriesIsLoading,
-                    categories = catalogState.categories,
-                    selected = catalogState.selectedCategory,
-                    selectCategory = {
-                        catalogViewModel.setCategory(it)
-                    })
-                Spacer(modifier = Modifier.height(12.dp))
+                ) {
+                    Column {
+                        if (state.isLoading) NewsSkeleton() else News(news = state.news)
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            "Каталог анализов",
+                            color = Color(0xFF939396),
+                            fontWeight = FontWeight.W900,
+                            fontSize = 17.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
-            if (catalogState.catalogIsLoading) items(10) {
-                SkeletonCatalogItem()
-            }
-            else items(catalogState.catalog) {
-                CatalogItem(
-                    item = it, setSheetState = setSheetState, setSheetContent = setSheetContent
-                )
+            Categories(isLoading = catalogState.categoriesIsLoading,
+                categories = catalogState.categories,
+                selected = catalogState.selectedCategory,
+                selectCategory = {
+                    catalogViewModel.setCategory(it)
+                })
+            Spacer(modifier = Modifier.height(12.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f),
+                state = scrollState
+            ) {
+                if (catalogState.catalogIsLoading) items(10) {
+                    SkeletonCatalogItem()
+                }
+                else items(allCatalog.value) {
+                    CatalogItem(
+                        item = it, setSheetState = setSheetState, setSheetContent = setSheetContent
+                    )
+                }
             }
         }
     }
@@ -461,6 +518,14 @@ fun Categories(
     selected: String?,
     selectCategory: (String) -> Unit
 ) {
+    val scrollState = rememberLazyListState()
+    LaunchedEffect(key1 = selected) {
+        if (!isLoading) {
+            if (categories.isNotEmpty()) {
+                scrollState.animateScrollToItem(categories.indexOf(selected))
+            }
+        }
+    }
     if (isLoading) LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -482,14 +547,15 @@ fun Categories(
                         .background(
                             Color(0xFF7E7E9A).copy(0.2f), shape = RoundedCornerShape(4.dp)
                         )
-                ) {}
+                )
             }
         }
     }
     else LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp)
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        state = scrollState
     ) {
         items(categories.size) {
             Box(modifier = Modifier
@@ -689,7 +755,8 @@ private fun AppBar(
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp)
+            .zIndex(101010f),
         placeholder = {
             Text("Искать анализы", color = Color(0xFF939396))
         },
