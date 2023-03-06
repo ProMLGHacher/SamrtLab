@@ -10,4 +10,5 @@ sealed class Screen(
     object CreatePassword : Screen(route = "create_password_screen")
     object CreateMap : Screen(route = "create_map_screen")
     object MainScreen : Screen(route = "main_screen")
+    object CartScreen : Screen(route = "cart_screen")
 }

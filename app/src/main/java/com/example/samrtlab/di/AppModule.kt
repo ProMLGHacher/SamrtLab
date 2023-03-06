@@ -26,6 +26,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCartRepository(): CartRepository {
+        return CartRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
     fun provideProfileRepository(
         sharedPreferences: SharedPreferences,
         httpClient: HttpClient

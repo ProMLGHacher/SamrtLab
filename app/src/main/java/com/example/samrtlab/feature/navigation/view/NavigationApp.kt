@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.example.samrtlab.feature.cart.view.Cart
 import com.example.samrtlab.feature.change_mail.view.ChangeMail
 import com.example.samrtlab.feature.comfirm_email.view.ConfirmEmail
 import com.example.samrtlab.feature.create_map.view.CreateMap
@@ -100,6 +101,11 @@ fun NavigationApp(
                 ChangeMail {
                     navController.navigate(Screen.ConfirmEmail.route)
                 }
+            }
+            composable(Screen.CartScreen.route) {
+                Cart(
+                    appNavController = navController
+                )
             }
             composable(Screen.ConfirmEmail.route) {
                 ConfirmEmail(

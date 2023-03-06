@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -39,9 +40,11 @@ import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.samrtlab.R
+import com.example.samrtlab.consts.CustomButton
 import com.example.samrtlab.consts.elevation
 import com.example.samrtlab.domain.model.catalog.CatalogItem
 import com.example.samrtlab.domain.model.news.NewsItem
+import com.example.samrtlab.feature.cart.view_model.CartViewModel
 import com.example.samrtlab.feature.main.analyzes.model.NewsState
 import com.example.samrtlab.feature.main.analyzes.model.CatalogState
 import com.example.samrtlab.feature.main.analyzes.view_model.CatalogViewModel
@@ -63,7 +66,8 @@ fun Analyzes(
     viewModel: NewsViewModel = hiltViewModel(),
     catalogViewModel: CatalogViewModel = hiltViewModel(),
     setSheetState: (state: ModalBottomSheetValue) -> Unit,
-    setSheetContent: (@Composable (() -> Unit)) -> Unit
+    setSheetContent: (@Composable (() -> Unit)) -> Unit,
+    cartViewModel: CartViewModel = hiltViewModel()
 ) {
     val catalogState = catalogViewModel.state.collectAsState()
     val state = viewModel.state.collectAsState()
@@ -94,10 +98,15 @@ fun Analyzes(
                     setSheetContent = setSheetContent,
                     catalogViewModel = catalogViewModel,
                     refreshState = refreshState,
-                    allCatalog
+                    allCatalog,
+                    cartViewModel
                 )
             else Search(
-                allCatalog.value, catalogState.value.searchText, setSheetState, setSheetContent
+                allCatalog.value,
+                catalogState.value.searchText,
+                setSheetState,
+                setSheetContent,
+                cartViewModel
             )
         }
     }
@@ -110,7 +119,8 @@ fun Search(
     value: List<CatalogItem>,
     searchText: String,
     setSheetState: (state: ModalBottomSheetValue) -> Unit,
-    setSheetContent: (@Composable (() -> Unit)) -> Unit
+    setSheetContent: (@Composable (() -> Unit)) -> Unit,
+    cartViewModel: CartViewModel
 ) {
     val focus = LocalFocusManager.current
     Column(
@@ -131,7 +141,8 @@ fun Search(
                     setSheetContent.invoke {
                         BottomSheet(item = it, closeSheet = {
                             setSheetState.invoke(ModalBottomSheetValue.Hidden)
-                        })
+
+                        }, cartViewModel)
                     }
                     setSheetState.invoke(ModalBottomSheetValue.Expanded)
                 }) {
@@ -159,6 +170,7 @@ fun Search(
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @ExperimentalGlideComposeApi
 @ExperimentalSnapperApi
@@ -172,7 +184,8 @@ fun Main(
     setSheetContent: (@Composable () -> Unit) -> Unit,
     catalogViewModel: CatalogViewModel,
     refreshState: PullRefreshState,
-    allCatalog: State<List<CatalogItem>>
+    allCatalog: State<List<CatalogItem>>,
+    cartViewModel: CartViewModel
 ) {
     val scrollState = rememberLazyListState()
     var lastScrollIndex = remember {
@@ -181,6 +194,7 @@ fun Main(
     val scrollUp = remember {
         mutableStateOf(false)
     }
+    val cartState = cartViewModel.state.collectAsState()
 
     fun updateScrollPosition(newScrollIndex: Int) {
         if (newScrollIndex == lastScrollIndex.value) return
@@ -192,18 +206,13 @@ fun Main(
     }
     LaunchedEffect(key1 = catalogState.selectedCategory) {
         if (allCatalog.value.isNotEmpty()) {
-            scrollState.scrollToItem(
-                allCatalog.value.indexOf(
-                    allCatalog.value.find { it.category == catalogState.selectedCategory }
-                )
-            )
+            scrollState.scrollToItem(allCatalog.value.indexOf(allCatalog.value.find { it.category == catalogState.selectedCategory }))
         }
     }
     LaunchedEffect(scrollState) {
-        snapshotFlow { scrollState.firstVisibleItemIndex }
-            .collect {
-                catalogViewModel.setFirstVisibleIndex(it)
-            }
+        snapshotFlow { scrollState.firstVisibleItemIndex }.collect {
+            catalogViewModel.setFirstVisibleIndex(it)
+        }
     }
     val position by animateFloatAsState(if (scrollUp.value) -1050f else 0f)
     Box(modifier = Modifier.fillMaxSize()) {
@@ -228,14 +237,15 @@ fun Main(
                     animationSpec = tween(durationMillis = 180, easing = LinearEasing)
                 ),
                 exit = slideOutVertically(
-                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing),
                 ) + shrinkVertically(
-                    animationSpec = tween(durationMillis = 180, easing = LinearEasing)
+                    animationSpec = tween(durationMillis = 180, easing = LinearEasing),
                 )
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().onSizeChanged {
+
+                    }
                 ) {
                     Column {
                         if (state.isLoading) NewsSkeleton() else News(news = state.news)
@@ -261,17 +271,31 @@ fun Main(
                 })
             Spacer(modifier = Modifier.height(12.dp))
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f),
-                state = scrollState
+                modifier = Modifier.weight(1f), state = scrollState
             ) {
                 if (catalogState.catalogIsLoading) items(10) {
                     SkeletonCatalogItem()
                 }
                 else items(allCatalog.value) {
                     CatalogItem(
-                        item = it, setSheetState = setSheetState, setSheetContent = setSheetContent
+                        item = it,
+                        cartViewModel,
+                        setSheetState = setSheetState,
+                        setSheetContent = setSheetContent,
                     )
+                }
+            }
+            if (!cartState.value.isLoading) {
+                AnimatedVisibility(visible = cartState.value.cart.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Divider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFFA0A0A0).copy(0.25f)
+                        )
+                        CustomButton(text = cartState.value.cart.size.toString()) {
+
+                        }
+                    }
                 }
             }
         }
@@ -280,7 +304,7 @@ fun Main(
 
 @Composable
 fun BottomSheet(
-    item: CatalogItem, closeSheet: () -> Unit
+    item: CatalogItem, closeSheet: () -> Unit, cartViewModel: CartViewModel
 ) {
     Column(
         modifier = Modifier
@@ -349,7 +373,10 @@ fun BottomSheet(
         Button(
             elevation = elevation(),
             shape = RoundedCornerShape(10.dp),
-            onClick = { /*TODO*/ },
+            onClick = {
+                cartViewModel.add(item)
+                closeSheet.invoke()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -439,13 +466,16 @@ fun SkeletonCatalogItem() {
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun CatalogItem(
     item: CatalogItem,
+    cartViewModel: CartViewModel,
     setSheetState: (state: ModalBottomSheetValue) -> Unit,
-    setSheetContent: (@Composable (() -> Unit)) -> Unit
+    setSheetContent: (@Composable () -> Unit) -> Unit
 ) {
+    val st = cartViewModel.state.collectAsState()
     Box(modifier = Modifier
         .padding(start = 20.dp, end = 20.dp, bottom = 12.dp, top = 12.dp)
         .shadow(
@@ -463,7 +493,7 @@ fun CatalogItem(
             setSheetContent.invoke {
                 BottomSheet(item = item, closeSheet = {
                     setSheetState.invoke(ModalBottomSheetValue.Hidden)
-                })
+                }, cartViewModel)
             }
             setSheetState.invoke(ModalBottomSheetValue.Expanded)
         }) {
@@ -496,15 +526,39 @@ fun CatalogItem(
                         fontSize = 17.sp
                     )
                 }
-                Button(
-                    onClick = { /*TODO*/ },
-                    modifier = Modifier.height(40.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFF1A6FEE)
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text("Добавить", color = Color.White, fontWeight = FontWeight.W900)
+                AnimatedContent(
+                    targetState = st.value.cart.any { it.name == item.name },
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(220, delayMillis = 90)) with
+                                fadeOut(animationSpec = tween(90))
+                    }) {
+                    Button(
+                        onClick = {
+                            if (st.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
+                                item
+                            ) else cartViewModel.add(item)
+                        },
+                        elevation = elevation(),
+                        modifier = Modifier
+                            .border(
+                                width = if (st.value.cart.any { it.name == item.name }) 1.dp else (-1).dp,
+                                brush = SolidColor(Color(0xFF1A6FEE)),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .height(if (st.value.cart.any { it.name == item.name }) 38.dp else 40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = if (st.value.cart.any { it.name == item.name }) Color.Transparent else Color(
+                                0xFF1A6FEE
+                            )
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(
+                            if (st.value.cart.any { it.name == item.name }) "   Убрать   " else "Добавить",
+                            color = if (st.value.cart.any { it.name == item.name }) Color(0xFF1A6FEE) else Color.White,
+                            fontWeight = FontWeight.W900
+                        )
+                    }
                 }
             }
         }
