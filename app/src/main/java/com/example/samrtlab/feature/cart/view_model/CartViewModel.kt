@@ -19,7 +19,8 @@ class CartViewModel @Inject constructor(
 
     data class CartState(
         val isLoading: Boolean = true,
-        val cart: List<CartItem> = emptyList()
+        val cart: List<CartItem> = emptyList(),
+        val sum: Int = 0
     )
 
     private val _state = MutableStateFlow(CartState())
@@ -49,8 +50,17 @@ class CartViewModel @Inject constructor(
             }
             _state.update {
                 it.copy(
-                    isLoading = false,
                     cart = cartRepository.getCart()
+                )
+            }
+            _state.update {
+                var sum = 0
+                it.cart.map {item ->
+                    sum += item.price.toInt() * item.count
+                }
+                it.copy(
+                    isLoading = false,
+                    sum = sum
                 )
             }
         }

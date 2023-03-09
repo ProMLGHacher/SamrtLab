@@ -292,7 +292,7 @@ fun Main(
                             modifier = Modifier.fillMaxWidth(),
                             color = Color(0xFFA0A0A0).copy(0.25f)
                         )
-                        CustomButton(text = cartState.value.cart.size.toString()) {
+                        CustomButton(text = cartState.value.sum.toString()) {
 
                         }
                     }

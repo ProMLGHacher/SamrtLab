@@ -37,7 +37,7 @@ fun Cart(
                 time_result = Random().nextInt().toString()
             ))
         }) {
-            Text("add")
+            Text(state.value.sum.toString())
         }
         Button(onClick = {
             viewModel.removeCartItem(
