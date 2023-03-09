@@ -241,9 +241,6 @@ fun Main(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onSizeChanged {
-
-                        }
                 ) {
                     Column {
                         if (state.isLoading) NewsSkeleton() else News(news = state.news)
@@ -344,6 +341,7 @@ fun Main(
 fun BottomSheet(
     item: CatalogItem, closeSheet: () -> Unit, cartViewModel: CartViewModel
 ) {
+    val cartState = cartViewModel.state.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -412,19 +410,30 @@ fun BottomSheet(
             elevation = elevation(),
             shape = RoundedCornerShape(10.dp),
             onClick = {
-                cartViewModel.add(item)
-                closeSheet.invoke()
+
+                if (cartState.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
+                    cartState.value.cart.single {
+                        it.name == item.name
+                    }
+                ) else cartViewModel.add(item)
             },
             modifier = Modifier
+                .border(
+                    width = if (cartState.value.cart.any { item.name == it.name }) 1.dp else 0.dp,
+                    color = Color(0xFF1A6FEE),
+                    shape = RoundedCornerShape(10.dp)
+                )
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                backgroundColor = Color(0xFF1A6FEE)
+                backgroundColor = if (cartState.value.cart.any { item.name == it.name }) Color.Transparent else Color(
+                    0xFF1A6FEE
+                )
             )
         ) {
             Text(
-                "Добавить за ${item.price} ₽",
-                color = Color.White,
+                if (cartState.value.cart.any { item.name == it.name }) "Убрать" else "Добавить за ${item.price} ₽",
+                color = if (cartState.value.cart.any { item.name == it.name }) Color(0xFF1A6FEE) else Color.White,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.W900
             )
