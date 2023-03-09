@@ -26,6 +26,10 @@ class CartViewModel @Inject constructor(
     private val _state = MutableStateFlow(CartState())
     val state = _state.asStateFlow()
 
+    init {
+        updateCart()
+    }
+
     fun add(item: CatalogItem) {
         cartRepository.addCart(
             CartItem(
@@ -36,8 +40,23 @@ class CartViewModel @Inject constructor(
         updateCart()
     }
 
-    fun removeCartItem(item: CatalogItem) {
+    fun removeCartItem(item: CartItem) {
         cartRepository.deleteItem(item.name)
+        updateCart()
+    }
+
+    fun plus(item: CartItem) {
+        cartRepository.addCountToCartItem(item.name)
+        updateCart()
+    }
+
+    fun minus(item: CartItem) {
+        cartRepository.decreaseCountFromCartItem(item.name)
+        updateCart()
+    }
+
+    fun clear() {
+        cartRepository.clear()
         updateCart()
     }
 
@@ -61,6 +80,13 @@ class CartViewModel @Inject constructor(
                 it.copy(
                     isLoading = false,
                     sum = sum
+                )
+            }
+            _state.update {
+                it.copy(
+                    cart = it.cart.sortedBy { item ->
+                        item.name
+                    }
                 )
             }
         }

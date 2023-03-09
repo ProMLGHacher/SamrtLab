@@ -6,4 +6,7 @@ interface CartRepository {
     fun addCart(item: CartItem)
     fun getCart(): List<CartItem>
     fun deleteItem(name: String)
+    fun addCountToCartItem(name: String)
+    fun decreaseCountFromCartItem(name: String)
+    fun clear()
 }

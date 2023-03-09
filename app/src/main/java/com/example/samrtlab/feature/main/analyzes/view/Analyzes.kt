@@ -49,6 +49,7 @@ import com.example.samrtlab.feature.main.analyzes.model.NewsState
 import com.example.samrtlab.feature.main.analyzes.model.CatalogState
 import com.example.samrtlab.feature.main.analyzes.view_model.CatalogViewModel
 import com.example.samrtlab.feature.main.analyzes.view_model.NewsViewModel
+import com.example.samrtlab.feature.navigation.model.Screen
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
@@ -188,25 +189,18 @@ fun Main(
     cartViewModel: CartViewModel
 ) {
     val scrollState = rememberLazyListState()
-    var lastScrollIndex = remember {
-        mutableStateOf(0)
-    }
     val scrollUp = remember {
         mutableStateOf(false)
     }
     val cartState = cartViewModel.state.collectAsState()
-
-    fun updateScrollPosition(newScrollIndex: Int) {
-        if (newScrollIndex == lastScrollIndex.value) return
-        scrollUp.value = newScrollIndex > lastScrollIndex.value
-        lastScrollIndex.value = newScrollIndex
-    }
     LaunchedEffect(scrollState.canScrollBackward) {
         scrollUp.value = scrollState.canScrollBackward
     }
     LaunchedEffect(key1 = catalogState.selectedCategory) {
         if (allCatalog.value.isNotEmpty()) {
-            scrollState.scrollToItem(allCatalog.value.indexOf(allCatalog.value.find { it.category == catalogState.selectedCategory }))
+            if (!scrollState.isScrollInProgress) {
+                scrollState.animateScrollToItem(allCatalog.value.indexOf(allCatalog.value.find { it.category == catalogState.selectedCategory }))
+            }
         }
     }
     LaunchedEffect(scrollState) {
@@ -214,7 +208,9 @@ fun Main(
             catalogViewModel.setFirstVisibleIndex(it)
         }
     }
-    val position by animateFloatAsState(if (scrollUp.value) -1050f else 0f)
+    LaunchedEffect(key1 = true) {
+        cartViewModel.updateCart()
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         PullRefreshIndicator(
             catalogState.catalogIsLoading || catalogState.categoriesIsLoading || state.isLoading,
@@ -243,9 +239,11 @@ fun Main(
                 )
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().onSizeChanged {
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged {
 
-                    }
+                        }
                 ) {
                     Column {
                         if (state.isLoading) NewsSkeleton() else News(news = state.news)
@@ -292,8 +290,48 @@ fun Main(
                             modifier = Modifier.fillMaxWidth(),
                             color = Color(0xFFA0A0A0).copy(0.25f)
                         )
-                        CustomButton(text = cartState.value.sum.toString()) {
-
+                        Button(
+                            onClick = {
+                                appNavController.navigate(Screen.CartScreen.route)
+                            },
+                            elevation = elevation(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF1A6FEE),
+                                disabledBackgroundColor = Color(0xFFC9D4FB),
+                                contentColor = Color.White,
+                                disabledContentColor = Color.White
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = 24.dp)
+                                .fillMaxWidth()
+                                .height(50.dp)
+                                .padding(horizontal = 20.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.cart),
+                                        contentDescription = null
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Text(
+                                        "В корзину",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.W600,
+                                        fontSize = 17.sp
+                                    )
+                                }
+                                Text(
+                                    cartState.value.sum.toString() + " ₽",
+                                    fontWeight = FontWeight.W600,
+                                    fontSize = 17.sp,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
@@ -535,7 +573,9 @@ fun CatalogItem(
                     Button(
                         onClick = {
                             if (st.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
-                                item
+                                st.value.cart.single {
+                                    it.name == item.name
+                                }
                             ) else cartViewModel.add(item)
                         },
                         elevation = elevation(),

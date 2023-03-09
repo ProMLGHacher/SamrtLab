@@ -151,7 +151,7 @@ fun Onboard(
 }
 
 @Composable
-fun AppBar(
+private fun AppBar(
     isLast: Boolean,
     next: () -> Unit
 ) {

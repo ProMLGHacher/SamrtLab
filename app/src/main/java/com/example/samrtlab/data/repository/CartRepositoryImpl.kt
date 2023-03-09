@@ -12,6 +12,37 @@ class CartRepositoryImpl : CartRepository {
         cart.add(item)
     }
 
+    override fun addCountToCartItem(name: String) {
+        cart.onEachIndexed { index, it ->
+            if (it.name == name) {
+                if (it.count >= 9) return
+                val ele = it.copy(count = it.count+1)
+                cart.remove(it)
+                cart.add(ele)
+                return
+            }
+        }
+    }
+
+    override fun clear() {
+        cart.clear()
+    }
+
+    override fun decreaseCountFromCartItem(name: String) {
+        cart.onEachIndexed { index, cartItem ->
+           if (cartItem.name == name) {
+               if (cartItem.count <= 1) {
+//                deleteItem(cartItem.name)
+                   return
+               } else {
+                   cart.remove(cartItem)
+                   cart.add(cartItem.copy(count = cartItem.count - 1))
+                   return
+               }
+           }
+        }
+    }
+
     override fun getCart(): List<CartItem> {
         return cart.toList()
     }
