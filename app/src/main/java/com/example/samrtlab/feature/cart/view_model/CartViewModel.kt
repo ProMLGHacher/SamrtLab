@@ -34,7 +34,8 @@ class CartViewModel @Inject constructor(
         cartRepository.addCart(
             CartItem(
                 name = item.name,
-                price = item.price
+                price = item.price,
+                id = item.id
             )
         )
         updateCart()

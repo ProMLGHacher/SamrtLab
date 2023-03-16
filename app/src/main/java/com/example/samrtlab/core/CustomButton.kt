@@ -1,4 +1,4 @@
-package com.example.samrtlab.consts
+package com.example.samrtlab.core
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

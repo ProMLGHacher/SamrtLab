@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,37 +22,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.samrtlab.consts.elevation
+import com.example.samrtlab.core.elevation
+import com.example.samrtlab.feature.create_map.view_model.CreateMapViewModel
+import com.example.samrtlab.feature.navigation.model.Screen
 
 @Composable
 fun CreateMap(
     navController: NavController,
-    
+    viewModel: CreateMapViewModel = hiltViewModel()
 ) {
 
-    val name = remember {
-        mutableStateOf("")
-    }
-    val firstName = remember {
-        mutableStateOf("")
-    }
-    val lastName = remember {
-        mutableStateOf("")
-    }
-    val date = remember {
-        mutableStateOf("")
-    }
-    val gender = remember {
-        mutableStateOf("Мужской")
-    }
+    val state = viewModel.state.collectAsState()
 
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .scrollable(orientation = Orientation.Vertical, state = rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .scrollable(orientation = Orientation.Vertical, state = rememberScrollState())
+    ) {
         Spacer(modifier = Modifier.height(38.dp))
-        AppBar()
+        AppBar(navController)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             "Без карты пациента вы не сможете заказать анализы.",
@@ -69,9 +61,10 @@ fun CreateMap(
             color = Color(0xFF939396)
         )
         Spacer(modifier = Modifier.height(32.dp))
-        OutlinedTextField(value = name.value,
+        OutlinedTextField(
+            value = state.value.name,
             onValueChange = {
-                name.value = it
+                viewModel.setName(it)
             },
             placeholder = {
                 Text("Имя", color = Color(0xFF939396), fontSize = 14.sp)
@@ -93,9 +86,10 @@ fun CreateMap(
                 )
         )
         Spacer(modifier = Modifier.height(24.dp))
-        OutlinedTextField(value = lastName.value,
+        OutlinedTextField(
+            value = state.value.lastName,
             onValueChange = {
-                lastName.value = it
+                viewModel.setLastName(it)
             },
             placeholder = {
                 Text("Отчество", color = Color(0xFF939396), fontSize = 14.sp)
@@ -117,9 +111,10 @@ fun CreateMap(
                 )
         )
         Spacer(modifier = Modifier.height(24.dp))
-        OutlinedTextField(value = firstName.value,
+        OutlinedTextField(
+            value = state.value.firstName,
             onValueChange = {
-                firstName.value = it
+                viewModel.setFirstName(it)
             },
             placeholder = {
                 Text("Фамилия", color = Color(0xFF939396), fontSize = 14.sp)
@@ -141,9 +136,10 @@ fun CreateMap(
                 )
         )
         Spacer(modifier = Modifier.height(24.dp))
-        OutlinedTextField(value = date.value,
+        OutlinedTextField(
+            value = state.value.date,
             onValueChange = {
-                date.value = it
+                viewModel.setDate(it)
             },
             placeholder = {
                 Text("Дата рождения", color = Color(0xFF939396), fontSize = 14.sp)
@@ -182,7 +178,7 @@ fun CreateMap(
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                gender.value,
+                state.value.gender,
                 color = Color(0xFF939396),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,13 +187,13 @@ fun CreateMap(
                 dismissOnBackPress = true
             ), expanded = isExpanded.value, onDismissRequest = { isExpanded.value = false }) {
                 DropdownMenuItem(onClick = {
-                    gender.value = "Мужской"
+                    viewModel.setGender("Мужской")
                     isExpanded.value = false
                 }) {
                     Text("Мужской")
                 }
                 DropdownMenuItem(onClick = {
-                    gender.value = "Женский"
+                    viewModel.setGender("Женский")
                     isExpanded.value = false
                 }) {
                     Text("Женский")
@@ -207,7 +203,8 @@ fun CreateMap(
         Spacer(modifier = Modifier.height(48.dp))
         Button(
             onClick = {
-
+                viewModel.submit()
+                navController.navigate(Screen.MainScreen.route)
             },
             elevation = elevation(),
             shape = RoundedCornerShape(10.dp),
@@ -228,7 +225,7 @@ fun CreateMap(
 }
 
 @Composable
-private fun AppBar() {
+private fun AppBar(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -242,7 +239,10 @@ private fun AppBar() {
             fontWeight = FontWeight.W700,
             modifier = Modifier.weight(1f)
         )
-        TextButton(onClick = { /*TODO*/ }, modifier = Modifier.weight(0.6f)) {
+        TextButton(
+            onClick = { navController.navigate(Screen.MainScreen.route) },
+            modifier = Modifier.weight(0.6f)
+        ) {
             Text("Пропустить", color = Color(0xFF1A6FEE), fontSize = 15.sp)
         }
     }

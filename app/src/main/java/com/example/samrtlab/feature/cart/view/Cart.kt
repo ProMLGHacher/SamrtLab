@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,10 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.samrtlab.R
-import com.example.samrtlab.consts.CustomButton
-import com.example.samrtlab.domain.model.catalog.CatalogItem
+import com.example.samrtlab.core.CustomButton
 import com.example.samrtlab.feature.cart.view_model.CartViewModel
-import java.util.*
+import com.example.samrtlab.feature.navigation.model.Screen
 
 @Composable
 fun Cart(
@@ -187,7 +185,7 @@ fun Cart(
 
         Spacer(modifier = Modifier.height(32.dp))
         CustomButton(text = "Перейти к оформлению заказа") {
-
+            appNavController.navigate(Screen.OrderScreen.route)
         }
         Spacer(modifier = Modifier.height(32.dp))
 

@@ -1,4 +1,4 @@
-package com.example.samrtlab.consts
+package com.example.samrtlab.core
 
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ButtonElevation

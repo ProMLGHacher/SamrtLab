@@ -26,11 +26,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,8 +40,7 @@ import androidx.navigation.NavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.samrtlab.R
-import com.example.samrtlab.consts.CustomButton
-import com.example.samrtlab.consts.elevation
+import com.example.samrtlab.core.elevation
 import com.example.samrtlab.domain.model.catalog.CatalogItem
 import com.example.samrtlab.domain.model.news.NewsItem
 import com.example.samrtlab.feature.cart.view_model.CartViewModel
@@ -199,7 +198,7 @@ fun Main(
     LaunchedEffect(key1 = catalogState.selectedCategory) {
         if (allCatalog.value.isNotEmpty()) {
             if (!scrollState.isScrollInProgress) {
-                scrollState.animateScrollToItem(allCatalog.value.indexOf(allCatalog.value.find { it.category == catalogState.selectedCategory }))
+                scrollState.scrollToItem(allCatalog.value.indexOf(allCatalog.value.find { it.category == catalogState.selectedCategory }))
             }
         }
     }
@@ -410,7 +409,6 @@ fun BottomSheet(
             elevation = elevation(),
             shape = RoundedCornerShape(10.dp),
             onClick = {
-
                 if (cartState.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
                     cartState.value.cart.single {
                         it.name == item.name
@@ -573,41 +571,39 @@ fun CatalogItem(
                         fontSize = 17.sp
                     )
                 }
-                AnimatedContent(
-                    targetState = st.value.cart.any { it.name == item.name },
-                    transitionSpec = {
-                        fadeIn(animationSpec = tween(220, delayMillis = 90)) with
-                                fadeOut(animationSpec = tween(90))
-                    }) {
-                    Button(
-                        onClick = {
-                            if (st.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
-                                st.value.cart.single {
-                                    it.name == item.name
-                                }
-                            ) else cartViewModel.add(item)
-                        },
-                        elevation = elevation(),
-                        modifier = Modifier
-                            .border(
-                                width = if (st.value.cart.any { it.name == item.name }) 1.dp else (-1).dp,
-                                brush = SolidColor(Color(0xFF1A6FEE)),
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .height(if (st.value.cart.any { it.name == item.name }) 38.dp else 40.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = if (st.value.cart.any { it.name == item.name }) Color.Transparent else Color(
-                                0xFF1A6FEE
-                            )
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            if (st.value.cart.any { it.name == item.name }) "   Убрать   " else "Добавить",
-                            color = if (st.value.cart.any { it.name == item.name }) Color(0xFF1A6FEE) else Color.White,
-                            fontWeight = FontWeight.W900
+                val color = animateColorAsState(
+                    targetValue = if (st.value.cart.any { it.name == item.name }) Color.Transparent else Color(
+                        0xFF1A6FEE
+                    )
+                )
+                Button(
+                    onClick = {
+                        if (st.value.cart.any { it.name == item.name }) cartViewModel.removeCartItem(
+                            st.value.cart.single {
+                                it.name == item.name
+                            }
+                        ) else cartViewModel.add(item)
+                    },
+                    elevation = elevation(),
+                    modifier = Modifier
+                        .border(
+                            width = if (st.value.cart.any { it.name == item.name }) 1.dp else (-1).dp,
+                            brush = SolidColor(Color(0xFF1A6FEE)),
+                            shape = RoundedCornerShape(10.dp)
                         )
-                    }
+                        .height(42.dp)
+                        .width(120.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = color.value
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(
+                        if (st.value.cart.any { it.name == item.name }) "Убрать" else "Добавить",
+                        textAlign = TextAlign.Center,
+                        color = if (st.value.cart.any { it.name == item.name }) Color(0xFF1A6FEE) else Color.White,
+                        fontWeight = FontWeight.W900
+                    )
                 }
             }
         }

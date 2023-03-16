@@ -28,6 +28,7 @@ import com.example.samrtlab.feature.main.naviagtion.view.MainNav
 import com.example.samrtlab.feature.navigation.model.Screen
 import com.example.samrtlab.feature.navigation.view_model.NavViewModel
 import com.example.samrtlab.feature.onboard.view.Onboard
+import com.example.samrtlab.feature.order.view.Order
 import com.google.accompanist.pager.ExperimentalPagerApi
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ fun NavigationApp(
     val navController = rememberNavController()
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect {
-            when(it) {
+            when (it) {
                 NavViewModel.UiEvent.NoAuth -> {
                     navController.navigate(Screen.LaunchScreen.route)
                 }
@@ -53,7 +54,7 @@ fun NavigationApp(
     }
     val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
-    val content: @Composable (() -> Unit) = {  }
+    val content: @Composable (() -> Unit) = { }
     var customSheetContent by remember { mutableStateOf(content) }
     fun setSheetState(state: ModalBottomSheetValue) {
         if (state == ModalBottomSheetValue.Hidden) {
@@ -66,8 +67,9 @@ fun NavigationApp(
             }
         }
     }
+
     fun setSheetContent(
-        content: @Composable (() -> Unit) = {  }
+        content: @Composable (() -> Unit) = { }
     ) {
         customSheetContent = content
     }
@@ -122,17 +124,10 @@ fun NavigationApp(
                     navController
                 )
             }
+            composable(Screen.OrderScreen.route) {
+                Order(appNavController = navController)
+            }
         }
     }
 
-}
-
-@Composable
-fun GetImage(
-    ok: (Uri?) -> Unit
-) {
-    val launcher = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { res: Uri? ->
-        ok(res)
-    }
 }
